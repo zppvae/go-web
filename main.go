@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	beego.Informational("App started.")
 	beego.Run()
+
 }
 
