@@ -6,6 +6,8 @@ import (
 	"github.com/astaxie/beego"
 	"strconv"
 	"strings"
+	"os"
+	"path"
 )
 
 /*
@@ -129,18 +131,36 @@ func DelCategory(id string) error {
 	return err
 }
 
-func AddTopic(title, category,lable,content string) error {
+func AddTopic(title, category,lable,content,attachment string) error {
+	// 处理标签
+	lable = "$" + strings.Join(strings.Split(lable, " "), "#$") + "#"
+
 	o := orm.NewOrm()
 
 	topic := &Topic{
-		Title:   title,
-		Content: content,
-		Lables: lable,
-		Category: category,
-		Created: time.Now(),
-		Updated: time.Now(),
+		Title:      title,
+		Category:   category,
+		Lables:     lable,
+		Content:    content,
+		Attachment: attachment,
+		Created:    time.Now(),
+		Updated:    time.Now(),
 	}
 	_, err := o.Insert(topic)
+	if err != nil {
+		return err
+	}
+
+	// 更新分类统计
+	cate := new(Category)
+	qs := o.QueryTable("category")
+	err = qs.Filter("title", category).One(cate)
+	if err == nil {
+		// 如果不存在我们就直接忽略，只当分类存在时进行更新
+		cate.TopicCount++
+		_, err = o.Update(cate)
+	}
+
 	return err
 }
 
@@ -168,21 +188,54 @@ func GetTopic(tid string) (*Topic, error) {
 	return topic, nil
 }
 
-func ModifyTopic(tid, title, category,label,content string) error {
+func ModifyTopic(tid, title, category,lable,content,attachment string) error {
 	tidNum, err := strconv.ParseInt(tid, 10, 64)
 	if err != nil {
 		return err
 	}
 
+	lable = "$" + strings.Join(strings.Split(lable, " "), "#$") + "#"
+
+	var oldCate, oldAttach string
 	o := orm.NewOrm()
 	topic := &Topic{Id: tidNum}
 	if o.Read(topic) == nil {
+		oldCate = topic.Category
+		oldAttach = topic.Attachment
 		topic.Title = title
-		topic.Content = content
-		topic.Lables = label
 		topic.Category = category
+		topic.Lables = lable
+		topic.Content = content
+		topic.Attachment = attachment
 		topic.Updated = time.Now()
-		o.Update(topic)
+		_, err = o.Update(topic)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 更新分类统计
+	if len(oldCate) > 0 {
+		cate := new(Category)
+		qs := o.QueryTable("category")
+		err = qs.Filter("title", oldCate).One(cate)
+		if err == nil {
+			cate.TopicCount--
+			_, err = o.Update(cate)
+		}
+	}
+
+	// 删除旧的附件
+	if len(oldAttach) > 0 {
+		os.Remove(path.Join("attachment", oldAttach))
+	}
+
+	cate := new(Category)
+	qs := o.QueryTable("category")
+	err = qs.Filter("title", category).One(cate)
+	if err == nil {
+		cate.TopicCount++
+		_, err = o.Update(cate)
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego"
 	"go-web/models"
 	"strings"
+	"path"
 )
 
 /*
@@ -40,12 +41,29 @@ func (this *TopicController) Post() {
 	category := this.Input().Get("category")
 	lable := this.Input().Get("lable")
 
-	var err error
-	if len(tid) == 0 {
-		err = models.AddTopic(title, category,lable,content)
-	} else {
-		err = models.ModifyTopic(tid, title,category, lable,content)
+	// 获取附件
+	_, fh, err := this.GetFile("attachment")
+	if err != nil {
+		beego.Error(err)
 	}
+
+	var attachment string
+	if fh != nil {
+		// 保存附件
+		attachment = fh.Filename
+		beego.Info(attachment)
+		err = this.SaveToFile("attachment", path.Join("attachment", attachment))
+		if err != nil {
+			beego.Error(err)
+		}
+	}
+
+	if len(tid) == 0 {
+		err = models.AddTopic(title, category, lable, content, attachment)
+	} else {
+		err = models.ModifyTopic(tid, title, category, lable, content, attachment)
+	}
+
 
 	if err != nil {
 		beego.Error(err)
