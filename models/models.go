@@ -227,7 +227,7 @@ func ModifyTopic(tid, title, category,lable,content,attachment string) error {
 
 	// 删除旧的附件
 	if len(oldAttach) > 0 {
-		os.Remove(path.Join("attachment", oldAttach))
+		os.Remove(path.Join("static/attachment", oldAttach))
 	}
 
 	cate := new(Category)

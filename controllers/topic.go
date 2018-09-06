@@ -52,7 +52,7 @@ func (this *TopicController) Post() {
 		// 保存附件
 		attachment = fh.Filename
 		beego.Info(attachment)
-		err = this.SaveToFile("attachment", path.Join("attachment", attachment))
+		err = this.SaveToFile("attachment", path.Join("static/attachment", attachment))
 		if err != nil {
 			beego.Error(err)
 		}
