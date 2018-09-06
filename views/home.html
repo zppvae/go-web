@@ -10,12 +10,25 @@
 </div>
 
 <div class="container">
-    <div class="page-header">
-        <h1>我的一篇博客</h1>
-        <h6 class="text-muted">文章发表于 2018/09/04，共有 0 次浏览， 0 个评论</h6>
-        <p>
-            我发表了我的博客的第一篇文章。
-        </p>
+    <div class="col-md-9">
+    {{range .Topics}}
+        <div class="page-header">
+            <h1><a href="/topic/view/{{.Id}}">{{.Title}}</a></h1>
+            <h6 class="text-muted">文章发表于 {{.Created}}，共有 {{.Views}} 次浏览， {{.ReplyCount}} 个评论</h6>
+            <p>
+            {{.Content}}
+            </p>
+        </div>
+    {{end}}
+    </div>
+
+    <div class="col-md-3">
+        <h3>文章分类</h3>
+        <ul>
+        {{range .Categories}}
+            <li><a href="/?cate={{.Title}}">{{.Title}}</a></li>
+        {{end}}
+        </ul>
     </div>
 </div>
 

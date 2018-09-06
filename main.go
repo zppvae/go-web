@@ -7,6 +7,8 @@ import (
 	"go-web/models"
 
 	"github.com/astaxie/beego"
+	"fmt"
+	"github.com/garyburd/redigo/redis"
 )
 
 func init() {
@@ -19,6 +21,20 @@ func main() {
 	orm.Debug = true
 	// create table
 	orm.RunSyncdb("default", false, true)
+
+
+	c, err := redis.Dial("tcp", "172.18.7.172:6379",redis.DialDatabase(8))
+	if err != nil {
+		fmt.Println("Connect to redis error", err)
+		return
+	}
+	defer c.Close()
+
+	_, err = c.Do("SET", "mykey", "superWang")
+	if err != nil {
+		fmt.Println("redis set failed:", err)
+	}
+
 
 	// 启动 beego
 	beego.Run()

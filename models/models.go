@@ -130,6 +130,15 @@ func DelCategory(id string) error {
 	_, err = o.Delete(cate)
 	return err
 }
+func GetAllCategories() ([]*Category, error) {
+	o := orm.NewOrm()
+
+	cates := make([]*Category, 0)
+
+	qs := o.QueryTable("category")
+	_, err := qs.All(&cates)
+	return cates, err
+}
 
 func AddTopic(title, category,lable,content,attachment string) error {
 	// 处理标签
@@ -253,14 +262,21 @@ func DeleteTopic(tid string) error {
 	return err
 }
 
-func GetAllTopics(isDesc bool) (topics []*Topic, err error) {
+func GetAllTopics(category, lable string, isDesc bool) (topics []*Topic, err error) {
 	o := orm.NewOrm()
 
 	topics = make([]*Topic, 0)
 
-	qs := o.QueryTable(_TOPIC_TABLE)
+	qs := o.QueryTable("topic")
 	if isDesc {
+		if len(category) > 0 {
+			qs = qs.Filter("category", category)
+		}
+		if len(lable) > 0 {
+			qs = qs.Filter("lables__contains", "$"+lable+"#")
+		}
 		_, err = qs.OrderBy("-created").All(&topics)
+
 	} else {
 		_, err = qs.All(&topics)
 	}
