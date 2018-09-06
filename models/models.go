@@ -141,8 +141,9 @@ func GetAllCategories() ([]*Category, error) {
 }
 
 func AddTopic(title, category,lable,content,attachment string) error {
-	// 处理标签
+	// 处理标签  beego orm    $beego#$orm#
 	lable = "$" + strings.Join(strings.Split(lable, " "), "#$") + "#"
+
 
 	o := orm.NewOrm()
 
